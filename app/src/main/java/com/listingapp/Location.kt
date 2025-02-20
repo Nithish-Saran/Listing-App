@@ -51,8 +51,6 @@ import com.listingapp.ui.theme.ListingAppTheme
 @Composable
 fun Location(onLocationChanged: (Double, Double) -> Unit) {
     val context = LocalContext.current
-
-    // Use mutableStateOf instead of mutableDoubleStateOf for recompositions
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
     var hasLocationPermission by remember { mutableStateOf(false) }
@@ -69,7 +67,6 @@ fun Location(onLocationChanged: (Double, Double) -> Unit) {
             }
         }
         else {
-            Log.d("UserList", "Location services are OFF. Asking user to enable it.")
             showEnableLocationDialog(context)
         }
     }
@@ -87,7 +84,6 @@ fun Location(onLocationChanged: (Double, Double) -> Unit) {
 
     // Listen for location settings change
     LocationReceiver(context) {
-        Log.d("UserList", "Location settings changed! Fetching location...")
         updateLocation()
     }
 
@@ -143,7 +139,6 @@ fun LocationReceiver(
         object : BroadcastReceiver() {
             override fun onReceive(context: Context?, intent: Intent?) {
                 if (intent?.action == LocationManager.PROVIDERS_CHANGED_ACTION) {
-                    Log.d("LocationReceiver", "Location settings changed!")
                     onLocationChanged()
                 }
             }

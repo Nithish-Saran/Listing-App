@@ -1,5 +1,7 @@
 package com.listingapp
 
+import com.listingapp.db.entity.UserEntity
+
 sealed class AppBarState {
     sealed class Left : AppBarState() {
         data class BackWith1Title (val title: String) : Left()
@@ -41,6 +43,6 @@ data class AppBarViewState(
          data object Loading : UserListState()
          data object Error : UserListState()
          data object NoData : UserListState()
-         data class Success(val data: String) : UserListState()
+         data class Success(val data: Array<UserEntity>) : UserListState()
      }
  }

@@ -15,14 +15,16 @@ private val DarkColorScheme = darkColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
     primaryContainer = PrimaryContainer,
-    onSurface = OnSurface
+    onSurface = OnSurface,
+    onBackground = OnBackground
 )
 
 private val LightColorScheme = lightColorScheme(
     primary = Primary,
     onPrimary = OnPrimary,
     primaryContainer = PrimaryContainer,
-    onSurface = OnSurface
+    onSurface = OnSurface,
+    onBackground = OnBackground
 
     /* Other default colors to override
     background = Color(0xFFFFFBFE),

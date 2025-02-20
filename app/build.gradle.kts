@@ -60,6 +60,8 @@ dependencies {
     implementation(libs.coil.compose)
     implementation(libs.coil.gif)
     implementation(libs.android.async.http)
+    implementation("com.airbnb.android:lottie-compose:6.1.0")
+
 
     // navigation
     implementation(libs.androidx.navigation.compose)
@@ -78,14 +80,26 @@ dependencies {
     //implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
 
     // Room Database
-    implementation(libs.androidx.room.runtime)
-    kapt(libs.androidx.room.compiler)
-    implementation(libs.androidx.room.ktx)
+//    implementation(libs.androidx.room.runtime)
+//    kapt(libs.androidx.room.compiler)
+//    implementation(libs.androidx.room.ktx)
+//
+//    // hilt viewModel
+//    implementation(libs.hilt.android)
+//    kapt(libs.hilt.android.compiler)
+//    implementation(libs.androidx.hilt.navigation.compose)
 
-    // hilt viewModel
-    implementation(libs.hilt.android)
-    kapt(libs.hilt.android.compiler)
-    implementation(libs.androidx.hilt.navigation.compose)
+    //Hilt
+    implementation("com.google.dagger:hilt-android:2.49")
+    implementation(libs.volley)
+    kapt("com.google.dagger:hilt-android-compiler:2.48")
+    implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
+
+    //Room
+    implementation("androidx.room:room-runtime:2.6.1")
+    kapt("androidx.room:room-compiler:2.6.1")
+    implementation("androidx.room:room-ktx:2.6.1")
+
 
     debugImplementation(libs.androidx.ui.tooling)
 }

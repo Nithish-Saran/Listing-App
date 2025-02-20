@@ -16,13 +16,19 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
+import com.airbnb.lottie.compose.LottieAnimation
+import com.airbnb.lottie.compose.LottieCompositionSpec
+import com.airbnb.lottie.compose.LottieConstants
+import com.airbnb.lottie.compose.rememberLottieComposition
 import com.listingapp.ui.theme.ListingAppTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -46,15 +52,15 @@ fun AppTopBar(
                         IconButton(onClick = { navController.popBackStack() }) {
                             Icon(
                                 imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                                contentDescription = "Menu",
-                                tint = MaterialTheme.colorScheme.onPrimary,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onSurface,
                                 modifier = Modifier.size(28.dp),
                             )
                         }
                         Text(
                             text = left.title,
                             color = MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.titleSmall,
+                            style = MaterialTheme.typography.headlineLarge,
                         )
                     }
                 }
@@ -63,7 +69,7 @@ fun AppTopBar(
                     Text(
                         text = left.title,
                         color = MaterialTheme.colorScheme.onSurface,
-                        style = MaterialTheme.typography.titleLarge,
+                        style = MaterialTheme.typography.headlineLarge,
                         modifier = Modifier
                             .padding(start = 16.dp)
                     )
@@ -91,24 +97,22 @@ fun AppTopBar(
                                     .padding(start = 16.dp)
                             )
                             Text(
-                                text = right.status ?: "",
+                                text = right.status ?: "Unknown",
                                 color = MaterialTheme.colorScheme.onSurface,
                                 style = MaterialTheme.typography.titleSmall,
                                 modifier = Modifier
-                                    .padding(start = 16.dp)
+                                    .padding(start = 16.dp, bottom = 8.dp)
                             )
                         }
 
-                        AsyncImage(
-                            model = "https://openweathermap.org/img/wn/${right.image ?: ""}.png",
-                            contentDescription = "weather Icon",
-                            modifier = Modifier
-                                .padding(end = 16.dp, start = 8.dp)
-                                .size(52.dp),
+                        val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(weatherIcon(right.image!!)))
+                        LottieAnimation(
+                            composition = composition,
+                            iterations = LottieConstants.IterateForever,
+                            modifier = Modifier.size(100.dp)
                         )
                     }
                 }
-
                 AppBarState.Right.None -> {}
             }
         }

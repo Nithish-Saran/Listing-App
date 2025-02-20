@@ -21,6 +21,12 @@ object ApiRepo {
             url = "${Constant.CITY_API}lat=$lat&lon=$lon&limit=1&appid=${Constant.API_KEY}"
         ) {_, _, _, jsonArray -> it.resume(jsonArray) }
     }
+    suspend fun fetchUser (app: ListApp) : JSONObject? = suspendCoroutine {
+        httpGetJSON(
+            app = app,
+            url = Constant.USER_API
+        ) {_, _, jsonObject, _ -> it.resume(jsonObject) }
+    }
 }
 
 private fun httpGetJSON(app: ListApp, url: String, responder: (Boolean, Int, JSONObject?, JSONArray?) -> Unit) {
