@@ -28,7 +28,7 @@ data class AppBarViewState(
             left = AppBarState.Left.TitleOnly(title),
             right = AppBarState.Right.None
         )
-        fun getWeather(title: String, degree: Int, city: String, status: String, image: String): AppBarViewState = AppBarViewState(
+        fun getLocalWeather(title: String, degree: Int, city: String, status: String, image: String): AppBarViewState = AppBarViewState(
             left = AppBarState.Left.TitleOnly(title),
             right = AppBarState.Right.Weather(degree, city, status, image)
         )
@@ -41,7 +41,6 @@ data class AppBarViewState(
  sealed class UserDataState {
      sealed class UserListState : UserDataState() {
          data object Loading : UserListState()
-         data object Error : UserListState()
          data object NoData : UserListState()
          data class Success(val data: Array<UserEntity>) : UserListState()
      }

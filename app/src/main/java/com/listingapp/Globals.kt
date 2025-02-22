@@ -1,5 +1,8 @@
 package com.listingapp
 
+import android.content.Context
+import android.net.ConnectivityManager
+import android.net.NetworkCapabilities
 import androidx.compose.runtime.getValue
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.rememberLottieComposition
@@ -9,7 +12,6 @@ import java.text.SimpleDateFormat
 import java.util.Locale
 
 const val WeatherData = "WeatherData"
-const val AppPref = "AppPref"
 
 fun JSONArray.objectArray(): Array<JSONObject> = (0 until this.length()).map {
     this.getJSONObject(it)
@@ -21,17 +23,6 @@ fun JSONObject.objectArray(arg: String): Array<JSONObject> = try {
     emptyArray()
 }
 
-fun formatDate(dateStr: String): String {
-    return try {
-        val inputFormat = SimpleDateFormat("yyyy-MM-dd'T'HH:mm:ss.SSS'Z'", Locale.getDefault())
-        val outputFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-        val date = inputFormat.parse(dateStr)
-        outputFormat.format(date!!)
-    } catch (e: Exception) {
-        dateStr
-    }
-}
-
 fun weatherIcon(id: String): Int {
     return when (id) {
         "01d",-> R.raw.clear_sky
@@ -41,5 +32,13 @@ fun weatherIcon(id: String): Int {
         else -> R.raw.cloudy
     }
 }
+
+fun Context.isInternetAvailable(): Boolean {
+    val connectivityManager = getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+    val network = connectivityManager.activeNetwork
+    val capabilities = connectivityManager.getNetworkCapabilities(network)
+    return capabilities != null && capabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
+}
+
 
 

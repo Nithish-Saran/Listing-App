@@ -1,5 +1,6 @@
 package com.listingapp.db.dao
 
+import androidx.paging.PagingSource
 import androidx.room.Dao
 import androidx.room.Delete
 import androidx.room.Insert
@@ -31,6 +32,12 @@ interface UserDao {
         WHERE (firstName || ' ' || lastName) LIKE '%' || :query || '%'
     """)
     fun searchUsers(query: String): Flow<List<UserEntity>>
+
+    @Query("SELECT * FROM user_table LIMIT :limit OFFSET :offset")
+    suspend fun getUsers(offset: Int, limit: Int): List<UserEntity>
+
+    @Query("SELECT COUNT(*) FROM user_table")
+    suspend fun getTotalUserCount(): Int
 
     @Query("SELECT COUNT(*) FROM user_table WHERE uuid = :userId")
     suspend fun isUserExists(userId: String): Int

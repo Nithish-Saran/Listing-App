@@ -71,7 +71,6 @@ dependencies {
     implementation(libs.play.services.location)
 
     //retrofit
-    //implementation (libs.androidx.paging.runtime)
     implementation (libs.retrofit)
     implementation (libs.converter.gson)
 
@@ -92,6 +91,7 @@ dependencies {
     //Hilt
     implementation("com.google.dagger:hilt-android:2.49")
     implementation(libs.volley)
+    implementation(libs.androidx.paging.common.android)
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
@@ -100,6 +100,9 @@ dependencies {
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
+    implementation (libs.androidx.paging.runtime)
+    implementation ("androidx.room:room-paging:2.6.1")
+    implementation ("androidx.paging:paging-compose:3.2.1") // For Jetpack Compose support
 
     debugImplementation(libs.androidx.ui.tooling)
 }

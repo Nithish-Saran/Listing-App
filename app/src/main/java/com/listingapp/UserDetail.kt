@@ -38,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
+import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
@@ -53,7 +54,7 @@ fun UserDetails(
 ) {
     val viewModel: AppViewModel = hiltViewModel()
     val user by viewModel.getUserById(id).collectAsState(initial = null)
-    var status by remember { mutableStateOf("") }
+    var status by remember { mutableStateOf("Unknown") }
     var degree by remember { mutableStateOf(0) }
     var image by remember { mutableStateOf("") }
     var latitude by remember { mutableDoubleStateOf(0.0) }
@@ -88,7 +89,7 @@ fun UserDetails(
                 user?.let { user ->
                     AsyncImage(
                         model = ImageRequest.Builder(LocalContext.current)
-                            .data(user.pictureLarge)
+                            .data(user.pictureMedium)
                             .crossfade(true)
                             .build(),
                         contentDescription = "User Profile Picture",
@@ -98,8 +99,8 @@ fun UserDetails(
                             .clip(RoundedCornerShape(10))
                             .background(Color.Gray.copy(alpha = 0.2f)),
                         contentScale = ContentScale.Crop,
-                        placeholder = painterResource(R.drawable.photo),
-                        error = painterResource(R.drawable.photo)
+                        placeholder = painterResource(R.drawable.image),
+                        error = painterResource(R.drawable.image)
                     )
 
                     Spacer(modifier = Modifier.height(8.dp))
@@ -151,12 +152,13 @@ fun UserDetails(
     }
 
     LaunchedEffect(latitude, longitude) {
-        viewModel.getUserWeatherData(app, latitude, longitude, topBarState) { temp, icon, desc ->
+        viewModel.getUserWeatherData(app, latitude, longitude) { temp, icon, desc ->
             degree = temp
             image = icon
             degree = temp
             status = desc
         }
+        topBarState.value = AppBarViewState.getTitileWithBack("User Details")
     }
 }
 

@@ -32,6 +32,7 @@ import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -39,6 +40,7 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.core.content.ContextCompat
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.google.android.gms.location.FusedLocationProviderClient
 import com.google.android.gms.location.LocationServices
@@ -54,6 +56,7 @@ fun Location(onLocationChanged: (Double, Double) -> Unit) {
     var latitude by remember { mutableDoubleStateOf(0.0) }
     var longitude by remember { mutableDoubleStateOf(0.0) }
     var hasLocationPermission by remember { mutableStateOf(false) }
+    var isDialogShown by rememberSaveable { mutableStateOf(false) }
 
     // Fused Location Provider Client
     val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
@@ -66,8 +69,10 @@ fun Location(onLocationChanged: (Double, Double) -> Unit) {
                 longitude = lon
             }
         }
-        else {
-            showEnableLocationDialog(context)
+        else if (!isDialogShown) {
+            showEnableLocationDialog(context) {
+                isDialogShown = true  // Reset only when user goes to settings
+            }
         }
     }
 
@@ -84,7 +89,7 @@ fun Location(onLocationChanged: (Double, Double) -> Unit) {
 
     // Listen for location settings change
     LocationReceiver(context) {
-        updateLocation()
+        //updateLocation()
     }
 
     // Check for location permission on first composition
@@ -95,10 +100,13 @@ fun Location(onLocationChanged: (Double, Double) -> Unit) {
 
         if (!hasPermission) {
             locationPermissionLauncher.launch(permission)
-        } else {
+        }
+        else {
             // Check if Location Services are enabled
-            if (!isLocationEnabled(context)) {
-                showEnableLocationDialog(context)
+            if (!isLocationEnabled(context) && !isDialogShown) {
+                showEnableLocationDialog(context) {
+                    isDialogShown = true
+                }
             } else {
                 updateLocation()
             }
@@ -118,18 +126,20 @@ private fun isLocationEnabled(context: Context): Boolean {
             locationManager.isProviderEnabled(LocationManager.NETWORK_PROVIDER)
 }
 
-private fun showEnableLocationDialog(context: Context) {
+private fun showEnableLocationDialog(context: Context, onSettingsOpened: () -> Unit) {
     AlertDialog.Builder(context)
         .setTitle("Enable Location Services")
         .setMessage("Your location services are turned off. Please enable them for better functionality.")
         .setPositiveButton("Go to Settings") { _, _ ->
             context.startActivity(Intent(Settings.ACTION_LOCATION_SOURCE_SETTINGS))
+            onSettingsOpened()
         }
         .setNegativeButton("Cancel", null)
         .show()
 }
 
 
+// Listen the location status and update the UI
 @Composable
 fun LocationReceiver(
     context: Context,
