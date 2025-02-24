@@ -220,7 +220,6 @@ private fun InfoRow(label: String, value: String) {
     }
 }
 
-
 @Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun UserDetailPreview() {

@@ -9,5 +9,9 @@
     <string name="label_location">Location</string>
     <string name="temperature_format">%d° %s</string>
     <string name="user_details_title">User Details</string>
+    <string name="ok">OK</string>
+    <string name="no_user">No user found</string>
+    <string name="no_internet">No Internet Connection</string>
+    <string name="no_data">Please turn on Mobile Data or WiFi and press OK to continue.</string>
 
 </resources>

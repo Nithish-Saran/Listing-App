@@ -58,8 +58,10 @@ import androidx.compose.ui.graphics.SolidColor
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.tooling.preview.Devices
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -159,6 +161,7 @@ fun UserList(
         object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
+                noNetworkDialog = false
                 showLoading = false // Hide loading when internet is back
                 viewModel.addNewUsers() // Reload user data automatically
             }
@@ -197,7 +200,7 @@ fun UserList(
     if (showLoading) ListLoading()
 
     //Request location permission
-    Location { locationPermissionGranted = true }
+    if (context.isInternetAvailable()) Location { locationPermissionGranted = true }
 
     // Check location permission and location is enabled
     if (locationPermissionGranted && !isLocationEnabled) {
@@ -227,7 +230,11 @@ fun UserList(
 
         when (userDataViewState) {
             is UserDataState.UserListState.Loading -> ListLoading()
-            is UserDataState.UserListState.NoNetwork -> noNetworkDialog = true
+            is UserDataState.UserListState.NoNetwork -> {
+                NoData()
+                noNetworkDialog = true
+            }
+
             is UserDataState.UserListState.NoData -> NoData()
             is UserDataState.UserListState.Success -> {
                 UserGridView(
@@ -448,7 +455,7 @@ private fun NoData() {
                 .size(128.dp)
         )
         Text(
-            text = "No user found",
+            text = stringResource(R.string.no_user),
             color = MaterialTheme.colorScheme.onBackground,
             style = MaterialTheme.typography.titleLarge,
             modifier = Modifier
@@ -468,14 +475,14 @@ private fun NoNetworkDialog(onDismiss: () -> Unit) {
         onDismissRequest = { onDismiss() },
         title = {
             Text(
-                text = "No Internet Connection",
+                text = stringResource(R.string.no_internet),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleLarge
             )
         },
         text = {
             Text(
-                text = "Please turn on Mobile Data or WiFi and press ok to continue.",
+                text = stringResource(R.string.no_data),
                 color = MaterialTheme.colorScheme.onBackground,
                 style = MaterialTheme.typography.titleSmall
             )
@@ -484,10 +491,9 @@ private fun NoNetworkDialog(onDismiss: () -> Unit) {
         confirmButton = {
             TextButton(onClick = {
                 onDismiss()
-                //showLoading = true // Start showing loading indicator
             }) {
                 Text(
-                    text = "OK",
+                    text = stringResource(R.string.ok),
                     color = MaterialTheme.colorScheme.primary,
                     style = MaterialTheme.typography.titleLarge,
                     modifier = Modifier
@@ -506,7 +512,7 @@ fun UserListPreview() {
         UserList(
             app = ListApp(),
             topBarState = remember { mutableStateOf(AppBarViewState.getTitle("Listing App")) },
-            onReturn = {}
+            onReturn = {},
         )
     }
 }
