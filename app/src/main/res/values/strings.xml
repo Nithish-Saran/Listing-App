@@ -1,3 +1,13 @@
 <resources>
     <string name="app_name">ListingApp</string>
+
+    <string name="user_profile_picture">User Profile Picture</string>
+    <string name="label_name">Name</string>
+    <string name="label_email">Email</string>
+    <string name="label_age">Age</string>
+    <string name="label_phone">Phone</string>
+    <string name="label_location">Location</string>
+    <string name="temperature_format">%d° %s</string>
+    <string name="user_details_title">User Details</string>
+
 </resources>

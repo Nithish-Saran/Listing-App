@@ -58,9 +58,9 @@ dependencies {
     implementation(libs.androidx.foundation)
     implementation(libs.compose.shimmer)
     implementation(libs.coil.compose)
-    implementation(libs.coil.gif)
+    //implementation(libs.coil.gif)
     implementation(libs.android.async.http)
-    implementation("com.airbnb.android:lottie-compose:6.1.0")
+    implementation(libs.lottie.compose)
 
 
     // navigation
@@ -70,28 +70,8 @@ dependencies {
     // location
     implementation(libs.play.services.location)
 
-    //retrofit
-    implementation (libs.retrofit)
-    implementation (libs.converter.gson)
-
-    //implementation("com.squareup.retrofit2:retrofit:2.11.0")
-    //implementation("com.squareup.retrofit2:converter-gson:2.9.0")
-    //implementation("com.jakewharton.retrofit:retrofit2-kotlin-coroutines-adapter:0.9.2")
-
-    // Room Database
-//    implementation(libs.androidx.room.runtime)
-//    kapt(libs.androidx.room.compiler)
-//    implementation(libs.androidx.room.ktx)
-//
-//    // hilt viewModel
-//    implementation(libs.hilt.android)
-//    kapt(libs.hilt.android.compiler)
-//    implementation(libs.androidx.hilt.navigation.compose)
-
     //Hilt
     implementation("com.google.dagger:hilt-android:2.49")
-    implementation(libs.volley)
-    implementation(libs.androidx.paging.common.android)
     kapt("com.google.dagger:hilt-android-compiler:2.48")
     implementation("androidx.hilt:hilt-navigation-compose:1.2.0")
 
@@ -100,9 +80,10 @@ dependencies {
     kapt("androidx.room:room-compiler:2.6.1")
     implementation("androidx.room:room-ktx:2.6.1")
 
+
     implementation (libs.androidx.paging.runtime)
-    implementation ("androidx.room:room-paging:2.6.1")
-    implementation ("androidx.paging:paging-compose:3.2.1") // For Jetpack Compose support
+    implementation (libs.androidx.room.paging)
+    implementation (libs.androidx.paging.compose) // For Jetpack Compose support
 
     debugImplementation(libs.androidx.ui.tooling)
 }

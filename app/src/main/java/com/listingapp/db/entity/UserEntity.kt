@@ -1,31 +1,32 @@
 package com.listingapp.db.entity
 
-import androidx.room.ColumnInfo
 import androidx.room.Entity
 import androidx.room.PrimaryKey
 import org.json.JSONObject
 
+/** Represents a user entity in the database. */
 @Entity(tableName = "user_table")
 data class UserEntity(
-    @PrimaryKey val uuid: String,
-    val gender: String,
-    val firstName: String,
-    val lastName: String,
-    val city: String,
-    val state: String,
-    val country: String,
-    val latitude: Double,
-    val longitude: Double,
-    val email: String,
-    val dob: String,
-    val age: Int,
-    val phone: String,
-    val pictureLarge: String,
-    val pictureMedium: String,
-    val pictureThumbnail: String,
+    @PrimaryKey val uuid: String,  // Unique ID for the user
+    val gender: String,            // User's gender
+    val firstName: String,         // First name
+    val lastName: String,          // Last name
+    val city: String,              // City of residence
+    val state: String,             // State of residence
+    val country: String,           // Country of residence
+    val latitude: Double,          // Latitude coordinate
+    val longitude: Double,         // Longitude coordinate
+    val email: String,             // Email address
+    val dob: String,               // Date of birth
+    val age: Int,                  // Age
+    val phone: String,             // Phone number
+    val pictureLarge: String,      // Large profile picture URL
+    val pictureMedium: String,     // Medium profile picture URL
+    val pictureThumbnail: String   // Thumbnail profile picture URL
 ) {
     companion object {
-        fun parseData(json: JSONObject) =  UserEntity (
+        /** Parses JSON data into a UserEntity object. */
+        fun parseData(json: JSONObject) = UserEntity(
             uuid = json.getJSONObject("login").getString("uuid"),
             gender = json.getString("gender"),
             firstName = json.getJSONObject("name").getString("first"),
@@ -47,3 +48,4 @@ data class UserEntity(
         )
     }
 }
+

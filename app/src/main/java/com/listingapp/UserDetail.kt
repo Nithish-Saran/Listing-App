@@ -32,19 +32,28 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
-import coil.request.CachePolicy
 import coil.request.ImageRequest
 import com.airbnb.lottie.compose.LottieAnimation
 import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.listingapp.ui.theme.ListingAppTheme
+import com.listingapp.viewmodel.AppViewModel
+import com.listingapp.viewstate.AppBarViewState
+
+/**
+ * Composable function to display detailed user information, including profile picture,
+ * personal details, and weather information based on the user's location.
+ *
+ * @param app The application instance for managing app-level operations.
+ * @param id The unique identifier of the user whose details are displayed.
+ * @param topBarState The mutable state for managing the app bar's UI.
+ */
 
 @Composable
 fun UserDetails(
@@ -52,19 +61,20 @@ fun UserDetails(
     id: String,
     topBarState: MutableState<AppBarViewState>,
 ) {
+    //viewModel related state
     val viewModel: AppViewModel = hiltViewModel()
+
+    // user id related state
     val user by viewModel.getUserById(id).collectAsState(initial = null)
+
+    // weather data related state
     var status by remember { mutableStateOf("Unknown") }
     var degree by remember { mutableStateOf(0) }
     var image by remember { mutableStateOf("") }
-    var latitude by remember { mutableDoubleStateOf(0.0) }
-    var longitude by remember { mutableDoubleStateOf(0.0) }
 
-    LaunchedEffect(Unit) {
-        latitude = user?.latitude?: 0.0
-        longitude = user?.longitude ?: 0.0
-    }
+    val context = LocalContext.current
 
+    // UI for user details
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -74,7 +84,7 @@ fun UserDetails(
     ) {
         Card(
             modifier = Modifier
-                .padding(horizontal = 12.dp)
+                .padding(vertical = 16.dp, horizontal = 12.dp)
                 .fillMaxWidth(),
             shape = RoundedCornerShape(12.dp),
             elevation = CardDefaults.cardElevation(4.dp),
@@ -88,11 +98,11 @@ fun UserDetails(
             ) {
                 user?.let { user ->
                     AsyncImage(
-                        model = ImageRequest.Builder(LocalContext.current)
+                        model = ImageRequest.Builder(context)
                             .data(user.pictureMedium)
                             .crossfade(true)
                             .build(),
-                        contentDescription = "User Profile Picture",
+                        contentDescription = stringResource(R.string.user_profile_picture),
                         modifier = Modifier
                             .size(300.dp)
                             .padding(vertical = 16.dp)
@@ -109,11 +119,17 @@ fun UserDetails(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalAlignment = Alignment.Start
                     ) {
-                        InfoRow("Name", "${user.firstName} ${user.lastName}")
-                        InfoRow("Email", user.email)
-                        InfoRow("Age", user.age.toString())
-                        InfoRow("Phone", user.phone)
-                        InfoRow("Location", "${user.country}, ${user.state}")
+                        InfoRow(
+                            stringResource(R.string.label_name),
+                            "${user.firstName} ${user.lastName}"
+                        )
+                        InfoRow(stringResource(R.string.label_email), user.email)
+                        InfoRow(stringResource(R.string.label_age), user.age.toString())
+                        InfoRow(stringResource(R.string.label_phone), user.phone)
+                        InfoRow(
+                            stringResource(R.string.label_location),
+                            "${user.country}, ${user.state}"
+                        )
                     }
                 }
 
@@ -128,19 +144,27 @@ fun UserDetails(
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
-                            text = "${degree}\u00B0 ${user?.city}",
+                            text = stringResource(
+                                R.string.temperature_format,
+                                degree,
+                                user?.city ?: ""
+                            ),
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.headlineLarge,
                             modifier = Modifier.padding(start = 16.dp)
                         )
                         Text(
-                            text =  status,
+                            text = status,
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.titleSmall,
                             modifier = Modifier.padding(start = 16.dp)
                         )
                     }
-                    val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(weatherIcon(image)))
+                    val composition by rememberLottieComposition(
+                        LottieCompositionSpec.RawRes(
+                            weatherIcon(image)
+                        )
+                    )
                     LottieAnimation(
                         composition = composition,
                         iterations = LottieConstants.IterateForever,
@@ -151,20 +175,24 @@ fun UserDetails(
         }
     }
 
-    LaunchedEffect(latitude, longitude) {
-        viewModel.getUserWeatherData(app, latitude, longitude) { temp, icon, desc ->
+    LaunchedEffect(Unit) {
+        viewModel.getUserWeatherData(
+            app,
+            user?.latitude ?: 0.0,
+            user?.longitude ?: 0.0
+        ) { temp, icon, desc ->
             degree = temp
             image = icon
-            degree = temp
             status = desc
         }
-        topBarState.value = AppBarViewState.getTitileWithBack("User Details")
+        topBarState.value =
+            AppBarViewState.getTitleWithBack(context.getString(R.string.user_details_title))
     }
 }
 
-
+// UI view
 @Composable
-fun InfoRow(label: String, value: String) {
+private fun InfoRow(label: String, value: String) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
@@ -193,14 +221,14 @@ fun InfoRow(label: String, value: String) {
 }
 
 
-@Preview(showBackground = true, showSystemUi = true,)
+@Preview(showBackground = true, showSystemUi = true)
 @Composable
 fun UserDetailPreview() {
     ListingAppTheme {
         UserDetails(
             app = ListApp(),
             id = "1",
-            topBarState = remember { mutableStateOf(AppBarViewState.getTitileWithBack("Listing App")) }
+            topBarState = remember { mutableStateOf(AppBarViewState.getTitleWithBack("Listing App")) }
         )
     }
 }

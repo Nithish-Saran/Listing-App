@@ -42,8 +42,7 @@ fun SplashScreen(onLoadCompleteRequest: ()->Unit) {
             Text(
                 text = "Listing App",
                 color = MaterialTheme.colorScheme.onSurface,
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)
             )
             Spacer(modifier = Modifier.height(256.dp))
@@ -52,13 +51,13 @@ fun SplashScreen(onLoadCompleteRequest: ()->Unit) {
             )
         }
     }
+
     LaunchedEffect(Unit) {
         scope.launch {
-            delay(2000)
+            delay(1000)
             onLoadCompleteRequest()
         }
     }
-
 }
 
 @Preview(showBackground = true, showSystemUi = true)

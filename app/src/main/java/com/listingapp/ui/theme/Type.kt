@@ -14,7 +14,7 @@ val Typography = Typography(
     headlineLarge = TextStyle(
         fontFamily = FontFamily(Font(R.font.poppins_regular)),
         fontWeight = FontWeight(500),
-        fontSize = 18.sp,
+        fontSize = 24.sp,
         lineHeight = 30.sp,
         letterSpacing = 1.0.sp
     ),

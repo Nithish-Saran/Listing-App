@@ -21,10 +21,9 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
-import androidx.compose.foundation.lazy.staggeredgrid.LazyStaggeredGridState
 import androidx.compose.foundation.lazy.staggeredgrid.LazyVerticalStaggeredGrid
 import androidx.compose.foundation.lazy.staggeredgrid.StaggeredGridCells
-import androidx.compose.foundation.lazy.staggeredgrid.items
+import androidx.compose.foundation.lazy.staggeredgrid.itemsIndexed
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
@@ -45,10 +44,10 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableDoubleStateOf
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.rememberUpdatedState
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.runtime.snapshotFlow
 import androidx.compose.ui.Alignment
@@ -65,15 +64,34 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
-import coil.compose.AsyncImage
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import coil.compose.SubcomposeAsyncImage
 import coil.request.CachePolicy
 import coil.request.ImageRequest
+import com.google.android.gms.location.LocationServices
 import com.listingapp.db.entity.UserEntity
 import com.listingapp.ui.theme.ListingAppTheme
+import com.listingapp.viewmodel.AppViewModel
+import com.listingapp.viewstate.AppBarViewState
+import com.listingapp.viewstate.UserDataState
 import com.valentinilk.shimmer.shimmer
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.flow.debounce
+
+/**
+ * A composable function that displays a list of users.
+ *
+ * It handles:
+ * - Fetching user data with pagination.
+ * - Searching users.
+ * - Handling network connectivity.
+ * - Retrieving and updating location for weather data.
+ *
+ * @param app The [ListApp] instance for application-level operations.
+ * @param topBarState Mutable state for managing the app bar UI state.
+ * @param onReturn Callback function invoked when a user is selected.
+ */
 
 @Composable
 fun UserList(
@@ -81,112 +99,78 @@ fun UserList(
     topBarState: MutableState<AppBarViewState>,
     onReturn: (String) -> Unit
 ) {
-    var latitude by remember { mutableDoubleStateOf(0.0) }
-    var longitude by remember { mutableDoubleStateOf(0.0) }
+    // Location-related states
+    var locationPermissionGranted by remember { mutableStateOf(false) }
+
+    //To remember that the location alert dialog has been shown,
+    var isLocationEnabled by remember { mutableStateOf(false) }
+
+    // viewModel and data
     val viewModel: AppViewModel = hiltViewModel()
-    var isLocationAvailable by remember { mutableStateOf(false) }
-    var searchQuery by remember { mutableStateOf("") }
     val userDataViewState by viewModel.userDataState.collectAsState()
-    val listState = LazyStaggeredGridState()
-    var debouncedQuery by remember { mutableStateOf("") }
+
+    // UI states
+    var searchQuery by remember { mutableStateOf("") }
     var previousQuery by remember { mutableStateOf(searchQuery) }
-    var offset by remember { mutableIntStateOf(0) }
-    var limit by remember { mutableIntStateOf(10) }
-
-    var showDialog by remember { mutableStateOf(false) }
+    var noNetworkDialog by remember { mutableStateOf(false) }
     var showLoading by remember { mutableStateOf(false) }
+
     val context = LocalContext.current
+    val fusedLocationClient = remember { LocationServices.getFusedLocationProviderClient(context) }
 
-    // For example, assume pageSize is fixed:
-    val pageSize = 25
-    var currentOffset by remember { mutableIntStateOf(0) }
+    /**
+     * Updates the location by fetching latitude and longitude.
+     * If location services are disabled, it fetches local weather data.
+     */
+    fun updateLocation() {
+        if (isLocationEnabled(context)) {
+            fetchLocation(context, fusedLocationClient) { lat, lon ->
+                viewModel.getWeather(
+                    app = app,
+                    lat = lat,
+                    lon = lon,
+                    topBarState = topBarState,
+                )
+            }
+        } else {
+            viewModel.getLocalWeather(app, topBarState)
+        }
+    }
 
+    // search query debounce handling
     LaunchedEffect(searchQuery) {
         snapshotFlow { searchQuery }
-            .debounce(500)
+            .debounce(500)  // debounce to prevent the excessive API calls
             .collectLatest { query ->
                 if (query.isNotEmpty()) {
-                    debouncedQuery = query
-                    viewModel.searchUsers(debouncedQuery)
+                    viewModel.searchUsers(query)
                 } else if (previousQuery.isNotEmpty()) {
-                    // Transitioned from a non-empty query to empty:
-                    viewModel.getAllUser()
-                    //currentOffset = 0
-                    //viewModel.getAllUsers(currentOffset, pageSize)
+                    viewModel.fetchUsers()
                 }
                 previousQuery = query
             }
     }
 
-    // Track last visible item dynamically for pagination
-//    LaunchedEffect(listState) {
-//        snapshotFlow { listState.layoutInfo }
-//            .collectLatest { layoutInfo ->
-//                val totalItems = layoutInfo.totalItemsCount
-//                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-//
-//                // Trigger pagination when near the end
-//                if (lastVisibleItem >= totalItems - 5 && totalItems > 0) {
-//                    offset = limit
-//                    limit += 10
-//                    viewModel.getAllUsers(offset, limit)
-//                }
-//            }
-//    }
-
-    // Track last visible item for pagination
-//    LaunchedEffect(listState) {
-//        snapshotFlow { listState.layoutInfo }
-//            .collectLatest { layoutInfo ->
-//                val totalItems = layoutInfo.totalItemsCount
-//                val lastVisibleItem = layoutInfo.visibleItemsInfo.lastOrNull()?.index ?: 0
-//                // Check if we are near the end
-//                if (lastVisibleItem >= totalItems - 5 && totalItems > 0) {
-//                    // Use the total count from viewModel
-//                    if (totalItems < viewModel.totalUserCount) {
-//                        currentOffset += pageSize
-//                        viewModel.getAllUsers(currentOffset, pageSize)
-//                    }
-//                }
-//            }
-//    }
-
     // Connectivity manager and network callback
     val connectivityManager =
         context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
+
     val networkCallback = rememberUpdatedState(
         object : ConnectivityManager.NetworkCallback() {
             override fun onAvailable(network: Network) {
                 super.onAvailable(network)
                 showLoading = false // Hide loading when internet is back
-                viewModel.getAllUser() // Reload user data automatically
-                //currentOffset = 0
-                //viewModel.getAllUsers(currentOffset, pageSize)
-                if (isLocationAvailable) {  // when internet is back and location is turned on it automatically updates the weather
-                    viewModel.getWeather(
-                        app = app,
-                        lat = latitude,
-                        lon = longitude
-                    ) { temp, icon, desc, city ->
-                        topBarState.value = AppBarViewState.getLocalWeather(
-                            title = "Listing App",
-                            degree = temp,
-                            city = city,
-                            status = desc,
-                            image = icon
-                        )
-                    }
-                } else {
-                    topBarState.value = AppBarViewState.getTitle("Listing App")
-                }
-            }
-
-            override fun onLost(network: Network) {
-                super.onLost(network)
-                //showDialog = true // Show dialog when internet is lost
+                viewModel.addNewUsers() // Reload user data automatically
             }
         }
     )
+
+    // Location receiver listen the location change and update
+    LocationReceiver(context) {
+        if (context.isInternetAvailable()) {
+            updateLocation()
+        }
+    }
 
     // Unregister network callback when the composable is disposed
     DisposableEffect(Unit) {
@@ -201,49 +185,35 @@ fun UserList(
         }
     }
 
-    if (showDialog) {
-        AlertDialog(
-            onDismissRequest = { showDialog = false },
-            title = {
-                Text(
-                    text = "No Internet Connection",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.titleLarge
-                )
-            },
-            text = {
-                Text(
-                    text = "Please turn on Mobile Data or WiFi to continue.",
-                    color = MaterialTheme.colorScheme.onBackground,
-                    style = MaterialTheme.typography.titleSmall
-                )
-           },
-            containerColor = MaterialTheme.colorScheme.onPrimary,
-            confirmButton = {
-                TextButton(onClick = {
-                    showDialog = false
-                    showLoading = true // Start showing loading indicator
-                }) {
-                    Text(
-                        text = "OK",
-                        color = MaterialTheme.colorScheme.primary,
-                        style = MaterialTheme.typography.titleLarge,
-                        modifier = Modifier
-                            .fillMaxWidth(),
-                        textAlign = TextAlign.Center
-                    )
-                }
-            }
-        )
+    // Dialog for no internet connection
+    if (noNetworkDialog) {
+        NoNetworkDialog {
+            noNetworkDialog = false
+            showLoading = true
+        }
     }
+
+    // show loading state
     if (showLoading) ListLoading()
 
-    Location { lat, lon ->
-        latitude = lat
-        longitude = lon
-        isLocationAvailable = true
+    //Request location permission
+    Location { locationPermissionGranted = true }
+
+    // Check location permission and location is enabled
+    if (locationPermissionGranted && !isLocationEnabled) {
+        if (!isLocationEnabled(context)) {
+            showEnableLocationDialog(context) {
+                isLocationEnabled = true
+                updateLocation()
+            }
+        }
+        updateLocation()
+        isLocationEnabled = true
+    } else {
+        viewModel.getLocalWeather(app, topBarState)
     }
 
+    // UI layout
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -255,73 +225,61 @@ fun UserList(
             onQueryChange = { newQuery -> searchQuery = newQuery }
         )
 
-        when (val state = userDataViewState) {
+        when (userDataViewState) {
             is UserDataState.UserListState.Loading -> ListLoading()
+            is UserDataState.UserListState.NoNetwork -> noNetworkDialog = true
             is UserDataState.UserListState.NoData -> NoData()
             is UserDataState.UserListState.Success -> {
-                LazyVerticalStaggeredGrid(
-                    //state = listState,
-                    columns = StaggeredGridCells.Fixed(2),
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(8.dp),
-                    verticalItemSpacing = 8.dp,
-                    flingBehavior = ScrollableDefaults.flingBehavior(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(state.data) { user ->
-                        UserCard(user) { user_id ->
-                            onReturn(user_id)
-                        }
-                    }
-                }
+                UserGridView(
+                    users = viewModel.usersList,
+                    onReturn = onReturn,
+                    viewModel = viewModel
+                )
             }
         }
     }
 
-    // Register network callback
     LaunchedEffect(Unit) {
         val networkRequest = NetworkRequest.Builder().build()
         connectivityManager.registerNetworkCallback(networkRequest, networkCallback.value)
 
-        if (!context.isInternetAvailable()) {
-            viewModel.getAllUser()
-        } else if (!viewModel.apiCalled) {      // This condition is to make Api call at once while the user opens the app, very first
-            viewModel.apiCalled = true
-            viewModel.addUser()
-            //viewModel.getAllUsers(currentOffset, pageSize)
-        }
+        viewModel.fetchUsers(context.isInternetAvailable())
+        if (context.isInternetAvailable()) updateLocation()
+        else viewModel.getLocalWeather(app, topBarState)
     }
+}
 
-    // Monitor userDataViewState and internet connectivity to decide dialog display.
-    LaunchedEffect(userDataViewState) {
-        // Show dialog only if there's no data AND no internet.
-        showDialog = userDataViewState is UserDataState.UserListState.NoData
-                && !context.isInternetAvailable()
-    }
-
-    // Update the top bar status
-    LaunchedEffect(isLocationAvailable) {
-        if (isLocationAvailable) {
-            viewModel.getWeather(
-                app = app,
-                lat = latitude,
-                lon = longitude
-            ) { temp, icon, desc, city ->
-                topBarState.value = AppBarViewState.getLocalWeather(
-                    title = "Listing App",
-                    degree = temp,
-                    city = city,
-                    status = desc,
-                    image = icon
-                )
+/**
+ * Composable function to display a staggered grid of user cards.
+ */
+@Composable
+private fun UserGridView(
+    users: List<UserEntity>,
+    onReturn: (String) -> Unit,
+    viewModel: AppViewModel
+) {
+    LazyVerticalStaggeredGrid(
+        columns = StaggeredGridCells.Fixed(2),
+        modifier = Modifier.fillMaxSize(),
+        contentPadding = PaddingValues(8.dp),
+        verticalItemSpacing = 8.dp,
+        flingBehavior = ScrollableDefaults.flingBehavior(),
+        horizontalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        itemsIndexed(users) { index, it ->
+            UserCard(it) { userid ->
+                onReturn(userid)
             }
-        } else {
-            topBarState.value = AppBarViewState.getTitle("Listing App")
+            if (index == users.size - 5) {
+                viewModel.loadMoreItems()
+            }
         }
     }
 }
 
-
+/**
+ * Composable function that displays a search bar.
+ */
 @Composable
 fun SearchBar(
     query: String,
@@ -374,6 +332,9 @@ fun SearchBar(
     }
 }
 
+/**
+ * Composable function that displays a card.
+ */
 @Composable
 private fun UserCard(data: UserEntity, onclick: (String) -> Unit) {
     val cardHeight = remember { (150..250).random().dp }
@@ -431,6 +392,9 @@ private fun UserCard(data: UserEntity, onclick: (String) -> Unit) {
     }
 }
 
+/**
+ * Composable function that show loading.
+ */
 @Composable
 private fun ListLoading() {
     Spacer(modifier = Modifier.height(12.dp))
@@ -466,6 +430,9 @@ private fun ListLoading() {
     }
 }
 
+/**
+ * Composable function that displays a no data.
+ */
 @Composable
 private fun NoData() {
     Column(
@@ -490,6 +457,46 @@ private fun NoData() {
             textAlign = TextAlign.Center
         )
     }
+}
+
+/**
+ * Displays an alert dialog when there is no internet connection.
+ */
+@Composable
+private fun NoNetworkDialog(onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = { onDismiss() },
+        title = {
+            Text(
+                text = "No Internet Connection",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleLarge
+            )
+        },
+        text = {
+            Text(
+                text = "Please turn on Mobile Data or WiFi and press ok to continue.",
+                color = MaterialTheme.colorScheme.onBackground,
+                style = MaterialTheme.typography.titleSmall
+            )
+        },
+        containerColor = MaterialTheme.colorScheme.onPrimary,
+        confirmButton = {
+            TextButton(onClick = {
+                onDismiss()
+                //showLoading = true // Start showing loading indicator
+            }) {
+                Text(
+                    text = "OK",
+                    color = MaterialTheme.colorScheme.primary,
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier
+                        .fillMaxWidth(),
+                    textAlign = TextAlign.Center
+                )
+            }
+        }
+    )
 }
 
 @Preview(showBackground = true, showSystemUi = true)
