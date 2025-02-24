@@ -18,11 +18,9 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
 import com.listingapp.ui.theme.ListingAppTheme
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
@@ -40,7 +38,7 @@ fun SplashScreen(onLoadCompleteRequest: ()->Unit) {
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             Text(
-                text = "Listing App",
+                text = stringResource(R.string.app_name),
                 color = MaterialTheme.colorScheme.onSurface,
                 style = MaterialTheme.typography.headlineLarge,
                 modifier = Modifier.padding(top = 8.dp, bottom = 4.dp)

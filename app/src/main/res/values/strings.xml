@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">ListingApp</string>
+    <string name="app_name">Listing App</string>
 
     <string name="user_profile_picture">User Profile Picture</string>
     <string name="label_name">Name</string>
