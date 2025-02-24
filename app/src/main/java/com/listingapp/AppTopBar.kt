@@ -73,7 +73,7 @@ fun LeftAppBarContent(left: AppBarState.Left, navController: NavController) {
                 Text(
                     text = left.title,
                     color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.headlineLarge
+                    style = MaterialTheme.typography.headlineSmall
                 )
             }
         }

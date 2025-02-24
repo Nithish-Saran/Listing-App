@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Card
@@ -33,6 +34,7 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -117,7 +119,8 @@ fun UserDetails(
 
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        horizontalAlignment = Alignment.Start
+                        horizontalAlignment = Alignment.Start,
+                        verticalArrangement = Arrangement.Center
                     ) {
                         InfoRow(
                             stringResource(R.string.label_name),
@@ -135,12 +138,15 @@ fun UserDetails(
 
                 // Weather Info Row
                 Row(
+                    modifier = Modifier
+                        .padding(horizontal = 8.dp)
+                        .fillMaxWidth(),
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.Center
                 ) {
                     Column(
-                        modifier = Modifier.wrapContentSize(),
-                        horizontalAlignment = Alignment.End,
+                        //modifier = Modifier.weight(0.8f),
+                        horizontalAlignment = Alignment.CenterHorizontally,
                         verticalArrangement = Arrangement.Center
                     ) {
                         Text(
@@ -150,14 +156,12 @@ fun UserDetails(
                                 user?.city ?: ""
                             ),
                             color = MaterialTheme.colorScheme.onSurface,
-                            style = MaterialTheme.typography.headlineLarge,
-                            modifier = Modifier.padding(start = 16.dp)
+                            style = MaterialTheme.typography.titleMedium,
                         )
                         Text(
                             text = status,
                             color = MaterialTheme.colorScheme.onSurface,
                             style = MaterialTheme.typography.titleSmall,
-                            modifier = Modifier.padding(start = 16.dp)
                         )
                     }
                     val composition by rememberLottieComposition(
@@ -168,7 +172,7 @@ fun UserDetails(
                     LottieAnimation(
                         composition = composition,
                         iterations = LottieConstants.IterateForever,
-                        modifier = Modifier.size(200.dp)
+                        modifier = Modifier.size(100.dp)
                     )
                 }
             }

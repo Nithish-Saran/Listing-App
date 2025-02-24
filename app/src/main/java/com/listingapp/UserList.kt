@@ -266,7 +266,7 @@ private fun UserGridView(
     viewModel: AppViewModel
 ) {
     LazyVerticalStaggeredGrid(
-        columns = StaggeredGridCells.Fixed(2),
+        columns = StaggeredGridCells.Adaptive(minSize = 160.dp),
         modifier = Modifier.fillMaxSize(),
         contentPadding = PaddingValues(8.dp),
         verticalItemSpacing = 8.dp,
@@ -344,7 +344,7 @@ fun SearchBar(
  */
 @Composable
 private fun UserCard(data: UserEntity, onclick: (String) -> Unit) {
-    val cardHeight = remember { (150..250).random().dp }
+    val cardHeight = remember { (100..300).random().dp }
     Card(
         modifier = Modifier
             .fillMaxWidth()
