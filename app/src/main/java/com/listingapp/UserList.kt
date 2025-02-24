@@ -344,7 +344,7 @@ fun SearchBar(
  */
 @Composable
 private fun UserCard(data: UserEntity, onclick: (String) -> Unit) {
-    val cardHeight = remember { (100..300).random().dp }
+    val cardHeight = remember { (150..300).random().dp }
     Card(
         modifier = Modifier
             .fillMaxWidth()
