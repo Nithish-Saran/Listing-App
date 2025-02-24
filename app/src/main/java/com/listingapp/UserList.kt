@@ -383,7 +383,15 @@ private fun UserCard(data: UserEntity, onclick: (String) -> Unit) {
                         CircularProgressIndicator()
                     }
                 },
-                error = { painterResource(R.drawable.photo) }
+                error = { Image(
+                    painter = painterResource(R.drawable.placeholder),
+                    contentDescription = "Placeholder Image",
+                    modifier = Modifier
+                        .size(cardHeight * 0.5f)
+                        .clip(CircleShape)
+                        .background(Color.Gray.copy(alpha = 0.2f)),
+                    contentScale = ContentScale.Crop
+                ) }
             )
 
             Text(

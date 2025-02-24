@@ -3,6 +3,7 @@ package com.listingapp.viewmodel
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.ui.platform.LocalContext
+import androidx.core.content.res.TypedArrayUtils.getString
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -73,26 +74,28 @@ class AppViewModel @Inject constructor(
         app: ListApp,
         lat: Double,
         lon: Double,
-        topBarState: MutableState<AppBarViewState>,
+        topBarState: MutableState<AppBarViewState>
     ) {
         viewModelScope.launch(Dispatchers.Main) {
             topBarState.value = AppBarViewState.getTitle("Listing App")
 
-            if (app.getLocationData()?.isNotEmpty() == true) {
-                getLocalWeather(app, topBarState)
-            } else {
+            val lastKnownLocation = app.getLastKnownLocation()  // Store last location in app data
+            val newLocation = Pair(lat, lon)
+            log("$lastKnownLocation, $newLocation")
+            // If location has changed significantly, fetch new weather
+            if (lastKnownLocation == null || lastKnownLocation != newLocation) {
                 val weather = ApiRepo.fetchWeather(app, lat, lon)
                 val weatherCity = ApiRepo.fetchWeatherCity(app, lat, lon)
 
                 if (weather != null) {
                     val weatherData = WeatherData.parseEntry(weather)
                     val city = if (weatherCity != null && weatherCity.length() > 0) {
-                        weatherCity.getJSONObject(0).optString("name", "UnKnown")
+                        weatherCity.getJSONObject(0).optString("name", "Unknown")
                     } else {
-                        "UnKnown"
+                        "Unknown"
                     }
 
-                    // Update the top bar with weather info
+                    // Update top bar with new weather info
                     topBarState.value = AppBarViewState.getLocalWeather(
                         title = "Listing App",
                         degree = weatherData.temp,
@@ -101,21 +104,29 @@ class AppViewModel @Inject constructor(
                         image = weatherData.icon
                     )
 
-                    // Cache weather data locally
+                    // Store new location and weather data
+                    app.setLastKnownLocation(lat, lon)  // Store latest location
                     app.setLocationData(
                         arrayOf(
                             weatherData.temp.toString(),
                             weatherData.description,
                             weatherData.icon,
-                            city
-                        )
+                            city,
+                        ),
+                        lat = lat,
+                        lon = lon
                     )
                 } else {
-                    topBarState.value = AppBarViewState.getTitle("Listing App")
+                    // Fallback to local weather data
+                    getLocalWeather(app, topBarState)
                 }
+            } else {
+                // If location hasn't changed, use local weather data
+                getLocalWeather(app, topBarState)
             }
         }
     }
+
 
     //Retrieves locally stored weather data and updates the top bar.
     fun getLocalWeather(app: ListApp, topBarState: MutableState<AppBarViewState>) {
